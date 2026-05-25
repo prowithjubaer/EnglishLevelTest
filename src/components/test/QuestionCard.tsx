@@ -123,7 +123,7 @@ export default function QuestionCard({ question, questionNumber, onAnswer }: Pro
   };
 
   return (
-    <div className="card animate-slideIn">
+    <div className="card animate-slideIn max-w-3xl mx-auto">
       {/* Instruction */}
       {instruction && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4">

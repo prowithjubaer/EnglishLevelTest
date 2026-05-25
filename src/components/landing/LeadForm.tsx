@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 const GOALS = [
   'Spoken English',
   'IELTS Speaking',
+  'IELTS Candidate',
   'Freelancing / Client Communication',
   'Job Interview',
   'Office English',

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import QuestionCard from './QuestionCard';
+import { Clock } from 'lucide-react';
 
 interface Question {
   id: string;
@@ -56,6 +57,12 @@ const PROGRESS_MESSAGES = [
   { at: 35, msg: 'শেষের দিকে! আর কিছুক্ষণ... ⭐' },
 ];
 
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
 export default function TestEngine({ testData }: { testData: TestData }) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,10 +73,22 @@ export default function TestEngine({ testData }: { testData: TestData }) {
   const [submitting, setSubmitting] = useState(false);
   const [progressMessage, setProgressMessage] = useState('');
   const [currentSection, setCurrentSection] = useState('');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { questions, attemptId } = testData;
   const totalQuestions = questions.length;
   const progress = ((currentIndex) / totalQuestions) * 100;
+
+  // Timer - cannot be paused
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - testStartTime) / 1000));
+    }, 1000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [testStartTime]);
 
   useEffect(() => {
     if (currentIndex < totalQuestions) {
@@ -80,7 +99,6 @@ export default function TestEngine({ testData }: { testData: TestData }) {
       }
       setQuestionStartTime(Date.now());
 
-      // Check for progress messages
       const msg = PROGRESS_MESSAGES.find(m => m.at === currentIndex);
       if (msg) {
         setProgressMessage(msg.msg);
@@ -91,7 +109,7 @@ export default function TestEngine({ testData }: { testData: TestData }) {
 
   const handleAnswer = useCallback((selectedAnswer: string | null, skipped: boolean) => {
     const timeSpent = Math.round((Date.now() - questionStartTime) / 1000);
-    
+
     const record: AnswerRecord = {
       questionId: questions[currentIndex].id,
       selectedAnswer,
@@ -99,10 +117,11 @@ export default function TestEngine({ testData }: { testData: TestData }) {
       skipped,
     };
 
-    setAnswers(prev => [...prev, record]);
+    const newAnswers = [...answers, record];
+    setAnswers(newAnswers);
 
     if (currentIndex + 1 >= totalQuestions) {
-      submitTest([...answers, record]);
+      submitTest(newAnswers);
     } else {
       setCurrentIndex(prev => prev + 1);
     }
@@ -110,6 +129,7 @@ export default function TestEngine({ testData }: { testData: TestData }) {
 
   const submitTest = async (finalAnswers: AnswerRecord[]) => {
     setSubmitting(true);
+    if (timerRef.current) clearInterval(timerRef.current);
     const totalTimeSeconds = Math.round((Date.now() - testStartTime) / 1000);
 
     try {
@@ -124,8 +144,16 @@ export default function TestEngine({ testData }: { testData: TestData }) {
       });
       const data = await res.json();
       if (data.success) {
+        // Store questions + answers for review page
+        const reviewData = questions.map((q, i) => ({
+          question: q,
+          selectedAnswer: finalAnswers[i]?.selectedAnswer || null,
+          skipped: finalAnswers[i]?.skipped || false,
+        }));
+        sessionStorage.setItem('testReview', JSON.stringify(reviewData));
         sessionStorage.setItem('testResult', JSON.stringify(data.result));
         sessionStorage.setItem('attemptId', attemptId);
+        sessionStorage.setItem('testTimeSeconds', totalTimeSeconds.toString());
         router.push('/result');
       }
     } catch (err) {
@@ -150,7 +178,7 @@ export default function TestEngine({ testData }: { testData: TestData }) {
   if (showSectionIntro && currentSection) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="card max-w-lg text-center animate-fadeInUp">
+        <div className="card max-w-lg w-full text-center animate-fadeInUp">
           <div className="text-4xl mb-4">
             {currentSection === 'grammar' && '🧠'}
             {currentSection === 'vocabulary' && '📚'}
@@ -183,16 +211,22 @@ export default function TestEngine({ testData }: { testData: TestData }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
+      {/* Header with Timer */}
       <div className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3">
+        <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-gray-500 font-medium">
               {CATEGORY_LABELS[currentQuestion.category]}
             </span>
-            <span className="text-xs text-gray-500">
-              {currentIndex + 1} / {totalQuestions}
-            </span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 bg-brand-navy text-white px-3 py-1 rounded-full text-xs font-mono">
+                <Clock className="w-3 h-3" />
+                {formatTime(elapsedSeconds)}
+              </div>
+              <span className="text-xs text-gray-500">
+                {currentIndex + 1} / {totalQuestions}
+              </span>
+            </div>
           </div>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }}></div>
@@ -202,15 +236,15 @@ export default function TestEngine({ testData }: { testData: TestData }) {
 
       {/* Progress message */}
       {progressMessage && (
-        <div className="max-w-3xl mx-auto px-4 mt-4">
+        <div className="max-w-4xl mx-auto px-4 mt-4">
           <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-center text-sm text-green-700 font-bangla animate-fadeInUp">
             {progressMessage}
           </div>
         </div>
       )}
 
-      {/* Question */}
-      <div className="max-w-3xl mx-auto px-4 mt-6">
+      {/* Question - wider on desktop */}
+      <div className="max-w-4xl mx-auto px-4 mt-6">
         <QuestionCard
           key={currentQuestion.id}
           question={currentQuestion}

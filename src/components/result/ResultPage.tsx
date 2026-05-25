@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { WEAKNESS_MESSAGES } from '@/lib/scoring';
-import { Download, MessageCircle, ExternalLink, RotateCcw } from 'lucide-react';
+import { Download, MessageCircle, ExternalLink, RotateCcw, Clock, Eye } from 'lucide-react';
 
 interface ResultData {
   attemptId: string;
@@ -61,8 +62,16 @@ const BADGES: Record<string, string[]> = {
   Advanced: ['🏆 Advanced Communicator', '💎 Near-Native Ready'],
 };
 
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}m ${secs}s`;
+}
+
 export default function ResultPage({ result, leadInfo }: { result: ResultData; leadInfo: LeadInfo }) {
+  const router = useRouter();
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const testTimeSeconds = parseInt(sessionStorage.getItem('testTimeSeconds') || '0');
 
   const trackAction = async (actionType: string) => {
     try {
@@ -95,86 +104,117 @@ export default function ResultPage({ result, leadInfo }: { result: ResultData; l
   const handlePdfDownload = async () => {
     setPdfGenerating(true);
     trackAction('pdf_downloaded');
-    
+
     try {
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
-      
+
+      // Use standard font that supports basic latin - Bangla will show transliterated
+      doc.setFont('helvetica');
+
       // Header
-      doc.setFontSize(20);
+      doc.setFontSize(22);
       doc.setTextColor(26, 35, 50);
       doc.text('Pro English BD', 105, 20, { align: 'center' });
-      doc.setFontSize(12);
+      doc.setFontSize(11);
+      doc.setTextColor(100, 100, 100);
       doc.text('English Level Test Report', 105, 28, { align: 'center' });
-      
+
       // Line
       doc.setDrawColor(220, 38, 38);
-      doc.setLineWidth(1);
+      doc.setLineWidth(1.5);
       doc.line(20, 33, 190, 33);
-      
+
       // Student Info
-      doc.setFontSize(11);
+      doc.setFontSize(10);
       doc.setTextColor(60, 60, 60);
-      let y = 43;
-      doc.text(`Name: ${leadInfo.name}`, 20, y); y += 7;
-      doc.text(`WhatsApp: ${leadInfo.whatsapp}`, 20, y); y += 7;
-      doc.text(`Goal: ${leadInfo.goal}`, 20, y); y += 7;
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, y); y += 12;
-      
-      // Result
+      let y = 42;
+      doc.text(`Name: ${leadInfo.name}`, 20, y); y += 6;
+      doc.text(`WhatsApp: ${leadInfo.whatsapp}`, 20, y); y += 6;
+      doc.text(`Goal: ${leadInfo.goal}`, 20, y); y += 6;
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, y); y += 6;
+      doc.text(`Time Taken: ${formatTime(testTimeSeconds)}`, 20, y); y += 10;
+
+      // Result Box
+      doc.setFillColor(245, 245, 255);
+      doc.roundedRect(20, y, 170, 25, 3, 3, 'F');
       doc.setFontSize(16);
       doc.setTextColor(220, 38, 38);
-      doc.text(`Level: ${result.level} / ${result.cefrLevel}`, 20, y); y += 8;
+      doc.text(`Level: ${result.level} / ${result.cefrLevel}`, 105, y + 10, { align: 'center' });
       doc.setFontSize(12);
       doc.setTextColor(26, 35, 50);
-      doc.text(`Score: ${result.weightedScore}/100`, 20, y); y += 7;
-      doc.text(`Test Confidence: ${result.testConfidence}`, 20, y); y += 12;
-      
+      doc.text(`Score: ${result.weightedScore}/100  |  Confidence: ${result.testConfidence}`, 105, y + 19, { align: 'center' });
+      y += 32;
+
       // Section Scores
-      doc.setFontSize(14);
+      doc.setFontSize(13);
+      doc.setTextColor(26, 35, 50);
       doc.text('Skill Breakdown:', 20, y); y += 8;
-      doc.setFontSize(10);
-      
+      doc.setFontSize(9);
+
       const sections = Object.entries(result.sectionPercentages);
       for (const [key, value] of sections) {
         const label = SECTION_LABELS[key] || key;
-        doc.text(`${label}: ${value}%`, 25, y); y += 6;
+        doc.setTextColor(60, 60, 60);
+        doc.text(`${label}:`, 25, y);
+        doc.setTextColor(26, 35, 50);
+        doc.text(`${value}%`, 100, y);
+        // Draw bar
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(110, y - 3, 60, 4, 1, 1, 'F');
+        const barColor = (value as number) >= 70 ? [34, 197, 94] : (value as number) >= 50 ? [234, 179, 8] : [239, 68, 68];
+        doc.setFillColor(barColor[0], barColor[1], barColor[2]);
+        doc.roundedRect(110, y - 3, Math.max(((value as number) / 100) * 60, 2), 4, 1, 1, 'F');
+        y += 7;
       }
       y += 6;
-      
+
       // Weaknesses
-      doc.setFontSize(14);
-      doc.text('Main Weaknesses:', 20, y); y += 8;
-      doc.setFontSize(10);
+      doc.setFontSize(13);
+      doc.setTextColor(26, 35, 50);
+      doc.text('Main Weaknesses:', 20, y); y += 7;
+      doc.setFontSize(9);
       for (const w of result.weaknesses.slice(0, 5)) {
         const msg = WEAKNESS_MESSAGES[w] || w;
-        const lines = doc.splitTextToSize(`- ${msg}`, 160);
-        doc.text(lines, 25, y);
-        y += lines.length * 5 + 2;
+        // Keep only ASCII-safe text for PDF
+        const safeLine = msg.replace(/[^\x00-\x7F]/g, '');
+        if (safeLine.trim()) {
+          const lines = doc.splitTextToSize(`- ${safeLine}`, 160);
+          doc.text(lines, 25, y);
+          y += lines.length * 5;
+        } else {
+          doc.text(`- ${w}`, 25, y); y += 5;
+        }
       }
       y += 6;
-      
+
       // Roadmap
       if (y > 240) { doc.addPage(); y = 20; }
-      doc.setFontSize(14);
+      doc.setFontSize(13);
+      doc.setTextColor(26, 35, 50);
       doc.text('75-Day Fluency Roadmap:', 20, y); y += 8;
-      doc.setFontSize(10);
-      for (const item of result.roadmap) {
-        doc.text(`${item.days}: ${item.title}`, 25, y); y += 5;
-        doc.text(`  ${item.description}`, 25, y); y += 7;
-      }
-      y += 8;
-      
-      // Course
-      doc.setFontSize(12);
-      doc.text(`Recommended: ${result.recommendedCourse}`, 20, y); y += 10;
-      
-      // Footer
       doc.setFontSize(9);
-      doc.setTextColor(120, 120, 120);
-      doc.text('Pro English BD | proenglishbd.com | +8801334556130', 105, 285, { align: 'center' });
-      
-      doc.save(`English-Level-Report-${leadInfo.name.replace(/\s/g, '-')}.pdf`);
+      for (const item of result.roadmap) {
+        doc.setTextColor(220, 38, 38);
+        doc.text(`${item.days}:`, 25, y);
+        doc.setTextColor(26, 35, 50);
+        doc.text(item.title, 55, y); y += 5;
+        doc.setTextColor(100, 100, 100);
+        doc.text(item.description, 30, y); y += 7;
+      }
+      y += 6;
+
+      // Course Recommendation
+      doc.setFontSize(11);
+      doc.setTextColor(26, 35, 50);
+      doc.text(`Recommended Course: ${result.recommendedCourse}`, 20, y); y += 8;
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Pro English BD | proenglishbd.com | WhatsApp: +8801334556130', 105, 285, { align: 'center' });
+
+      doc.save(`English-Level-Report-${leadInfo.name.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`);
     } catch (err) {
       console.error('PDF error:', err);
     } finally {
@@ -186,13 +226,13 @@ export default function ResultPage({ result, leadInfo }: { result: ResultData; l
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Hero Result */}
       <section className={`bg-gradient-to-br ${LEVEL_COLORS[result.level] || 'from-gray-500 to-gray-600'} text-white py-12 px-4`}>
-        <div className="max-w-2xl mx-auto text-center animate-fadeInUp">
+        <div className="max-w-3xl mx-auto text-center animate-fadeInUp">
           <p className="text-lg mb-2">🎉 আপনার English Level Test সম্পন্ন হয়েছে!</p>
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 mt-4">
             <p className="text-sm opacity-90 mb-1">Your English Level</p>
             <h1 className="text-4xl md:text-5xl font-bold mb-2">{result.level}</h1>
             <p className="text-xl opacity-90">CEFR: {result.cefrLevel}</p>
-            <div className="mt-4 flex items-center justify-center gap-4">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
               <div className="bg-white/20 rounded-lg px-4 py-2">
                 <span className="text-sm opacity-80">Score</span>
                 <p className="text-2xl font-bold">{result.weightedScore}/100</p>
@@ -201,9 +241,13 @@ export default function ResultPage({ result, leadInfo }: { result: ResultData; l
                 <span className="text-sm opacity-80">Confidence</span>
                 <p className="text-lg font-semibold capitalize">{result.testConfidence}</p>
               </div>
+              <div className="bg-white/20 rounded-lg px-4 py-2">
+                <span className="text-sm opacity-80">Time</span>
+                <p className="text-lg font-semibold flex items-center gap-1"><Clock className="w-4 h-4" />{formatTime(testTimeSeconds)}</p>
+              </div>
             </div>
           </div>
-          
+
           {/* Badges */}
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {(BADGES[result.level] || []).map((badge, i) => (
@@ -307,21 +351,19 @@ export default function ResultPage({ result, leadInfo }: { result: ResultData; l
               <ExternalLink className="w-4 h-4" /> Course Details দেখুন
             </button>
           </div>
-
-          {/* Second course */}
-          <div className="bg-gray-50 rounded-xl p-5">
-            <h3 className="font-bold text-brand-navy mb-2">Client Communication English for Freelancers</h3>
-            <p className="text-sm text-gray-600 font-bangla mb-3">
-              Freelancers এবং remote workers-দের জন্য client chat, meetings, professional response
-            </p>
-            <button onClick={handleCourseClick} className="btn-outline text-sm flex items-center gap-2">
-              <ExternalLink className="w-4 h-4" /> Freelancer Course দেখুন
-            </button>
-          </div>
         </div>
 
         {/* CTAs */}
         <div className="space-y-3">
+          {/* Review Answers */}
+          <button
+            onClick={() => router.push('/review')}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-3"
+          >
+            <Eye className="w-5 h-5" />
+            উত্তর রিভিউ করুন (Correct Answers দেখুন)
+          </button>
+
           {/* WhatsApp */}
           <button
             onClick={handleWhatsAppClick}

@@ -275,29 +275,53 @@ export function getRecommendedCourse(level: string, goal: string): string {
 }
 
 export function getRecommendedRoadmap(level: string): RoadmapItem[] {
-  if (['Beginner', 'Basic'].includes(level)) {
+  if (level === 'Beginner') {
     return [
-      { days: 'Day 1–15', title: 'Foundation Fix', description: 'Basic grammar, sentence structure, daily vocabulary' },
-      { days: 'Day 16–30', title: 'Sentence Making', description: 'Bangla to English conversion, simple speaking' },
-      { days: 'Day 31–45', title: 'Vocabulary Activation', description: 'Active vocabulary, phrases, collocations' },
-      { days: 'Day 46–60', title: 'Listening + Shadowing', description: 'Listening practice, pronunciation, connected speech' },
-      { days: 'Day 61–75', title: 'Speaking Practice', description: 'Confidence building, real-life scenarios, feedback' },
+      { days: 'Day 1–10', title: 'English Foundation Setup', description: 'Basic sentence patterns (SVO), am/is/are, do/does, pronouns. Daily 10 basic sentences practice. Bangla to English thinking training.' },
+      { days: 'Day 11–20', title: 'Grammar Core Build', description: 'Present simple, past simple, future will. Question making. Negative sentences. 20 daily spoken sentences.' },
+      { days: 'Day 21–35', title: 'Vocabulary Activation', description: 'Daily 10 new words with sentences. Collocations (make/do/take). Phrase learning. Context-based word usage practice.' },
+      { days: 'Day 36–50', title: 'Sentence Making Speed', description: 'Bangla to English real-time conversion. 50 daily sentence practice. Timed sentence building. Error correction drills.' },
+      { days: 'Day 51–60', title: 'Listening Foundation', description: 'Slow English audio daily. Spelling with listening. Basic shadowing practice. Short conversation understanding.' },
+      { days: 'Day 61–70', title: 'Speaking Starter', description: 'Self-introduction practice. Daily topics (5 sentences each). Mirror practice. Recording & self-review.' },
+      { days: 'Day 71–75', title: 'Confidence Building', description: 'Mock conversation practice. Real-life scenario roleplay. Speaking without thinking in Bangla. Final assessment.' },
+    ];
+  }
+  if (level === 'Basic') {
+    return [
+      { days: 'Day 1–10', title: 'Grammar Upgrade', description: 'Present perfect, past continuous, modal verbs, prepositions. Common error fixing. Sentence variety practice.' },
+      { days: 'Day 11–22', title: 'Sentence Making Mastery', description: 'Complex sentence building. Connectors (because, although, however). Professional sentence patterns. Daily 30 sentence practice.' },
+      { days: 'Day 23–35', title: 'Active Vocabulary System', description: 'Phrasal verbs, idioms, collocations. Context usage drills. Word family expansion. Vocabulary in speaking practice.' },
+      { days: 'Day 36–50', title: 'Listening + Shadowing', description: 'Native speed audio practice. Connected speech training. Accent exposure. Dictation exercises. Podcast listening.' },
+      { days: 'Day 51–62', title: 'Speaking Fluency Track', description: 'Extended response practice (1-2 min). Topic-based speaking. Thinking in English training. Filler reduction.' },
+      { days: 'Day 63–70', title: 'Real-life Communication', description: 'Client/office conversation practice. Phone English. Email communication. Professional responses.' },
+      { days: 'Day 71–75', title: 'Assessment & Confidence', description: 'Mock test. Real conversation practice. Speaking recording analysis. Personalized feedback session.' },
     ];
   }
   if (level === 'Intermediate') {
     return [
-      { days: 'Day 1–15', title: 'Fluency Foundation', description: 'Sentence speed, automatic grammar, thinking in English' },
-      { days: 'Day 16–30', title: 'Advanced Vocabulary', description: 'Natural expressions, idioms, professional vocabulary' },
-      { days: 'Day 31–45', title: 'Listening Mastery', description: 'Native speed, podcasts, real conversations' },
-      { days: 'Day 46–60', title: 'Speaking Confidence', description: 'Extended responses, debates, presentations' },
-      { days: 'Day 61–75', title: 'Real-world Practice', description: 'Interviews, client calls, IELTS-style practice' },
+      { days: 'Day 1–12', title: 'Fluency Mechanics', description: 'Automatic grammar usage. Thinking in English. Sentence speed optimization. Natural fillers and transitions.' },
+      { days: 'Day 13–25', title: 'Advanced Expression', description: 'Idioms in context. Advanced connectors. Paraphrasing skills. Nuanced vocabulary. Register switching.' },
+      { days: 'Day 26–38', title: 'Listening Mastery', description: 'Fast native speech. Multiple accents (British, American). News/podcast comprehension. Note-taking while listening.' },
+      { days: 'Day 39–52', title: 'Professional Communication', description: 'Meeting English. Presentation skills. Client negotiation language. Email writing excellence. IELTS Part 2-3 practice.' },
+      { days: 'Day 53–65', title: 'Speaking Performance', description: 'Debate practice. Storytelling skills. Opinion expression. Complex topic discussion. Public speaking basics.' },
+      { days: 'Day 66–72', title: 'Confidence & Polish', description: 'Pronunciation fine-tuning. Intonation patterns. Body language + speaking. Handling difficult questions.' },
+      { days: 'Day 73–75', title: 'Final Performance Test', description: 'Full mock interview/IELTS. Self-recorded analysis. Expert feedback. Next-level planning.' },
+    ];
+  }
+  if (level === 'Upper Intermediate') {
+    return [
+      { days: 'Day 1–15', title: 'Natural Fluency', description: 'Spontaneous speaking. Complex grammar in speech. Natural rhythm and intonation. Elimination of L1 interference.' },
+      { days: 'Day 16–30', title: 'Advanced Listening', description: 'Academic lectures. Fast-paced debates. Multiple speaker conversations. Inference and implied meaning.' },
+      { days: 'Day 31–45', title: 'Professional Excellence', description: 'High-level business communication. Persuasive speaking. Cross-cultural communication. Leadership language.' },
+      { days: 'Day 46–60', title: 'IELTS/Interview Ready', description: 'Band 7+ strategies. Coherence and cohesion. Lexical resource expansion. Complex idea articulation.' },
+      { days: 'Day 61–75', title: 'Performance Mastery', description: 'Public speaking. Impromptu topics. Critical thinking in English. Near-native confidence achievement.' },
     ];
   }
   return [
-    { days: 'Day 1–15', title: 'Advanced Polish', description: 'Natural expressions, nuanced grammar, style' },
-    { days: 'Day 16–30', title: 'Professional Fluency', description: 'Business English, negotiations, presentations' },
-    { days: 'Day 31–45', title: 'Native-like Listening', description: 'Accents, fast speech, cultural context' },
-    { days: 'Day 46–60', title: 'Speaking Excellence', description: 'Persuasion, storytelling, complex ideas' },
-    { days: 'Day 61–75', title: 'Performance Ready', description: 'IELTS 7+, professional interviews, public speaking' },
+    { days: 'Day 1–15', title: 'Native-level Polish', description: 'Subtle grammar nuances. Cultural references. Humor and wordplay. Register mastery across contexts.' },
+    { days: 'Day 16–30', title: 'Expert Communication', description: 'Academic writing/speaking. Conference presentations. Complex argumentation. Specialized vocabulary.' },
+    { days: 'Day 31–45', title: 'Cultural Fluency', description: 'British vs American nuances. Slang and colloquialisms. Media literacy. Cultural context understanding.' },
+    { days: 'Day 46–60', title: 'Leadership Language', description: 'Motivational speaking. Diplomatic language. Conflict resolution. High-stakes communication.' },
+    { days: 'Day 61–75', title: 'Mastery Assessment', description: 'IELTS 8+ preparation. Professional keynote practice. Mentoring others in English. Continuous improvement plan.' },
   ];
 }
