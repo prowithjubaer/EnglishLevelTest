@@ -523,8 +523,8 @@ async function main() {
       options: ['6', '7', '8', '9'],
       correctAnswer: '8',
       mistakeTags: ['listening_weak'],
-      audioUrl: '/audio/listening-1.mp3',
-      banglaExplanation: '"Today I woke up at eight" — আজ ৮টায় উঠেছে।',
+      audioUrl: 'tts:I usually wake up at six, but today I woke up at eight.',
+      banglaExplanation: 'Audio transcript: "I usually wake up at six, but today I woke up at eight."\n\n"Today I woke up at eight" — আজ ৮টায় উঠেছে।',
     },
     {
       questionText: 'Audio: "Can you send me the updated design by tomorrow morning?"\nWhat does the client want?',
@@ -532,8 +532,8 @@ async function main() {
       options: ['Old design', 'Updated design', 'Invoice', 'Meeting link'],
       correctAnswer: 'Updated design',
       mistakeTags: ['client_listening_weak', 'listening_weak'],
-      audioUrl: '/audio/listening-2.mp3',
-      banglaExplanation: '"Updated design by tomorrow morning" — আপডেটেড ডিজাইন চাচ্ছে।',
+      audioUrl: 'tts:Can you send me the updated design by tomorrow morning?',
+      banglaExplanation: 'Audio transcript: "Can you send me the updated design by tomorrow morning?"\n\n"Updated design by tomorrow morning" — আপডেটেড ডিজাইন চাচ্ছে।',
     },
     {
       questionText: 'Audio: "The meeting has been rescheduled to 3 PM."\nWhat happened to the meeting?',
@@ -541,8 +541,8 @@ async function main() {
       options: ['Cancelled', 'Time changed to 3 PM', 'Moved to tomorrow', 'Started early'],
       correctAnswer: 'Time changed to 3 PM',
       mistakeTags: ['listening_weak'],
-      audioUrl: '/audio/listening-3.mp3',
-      banglaExplanation: 'Rescheduled = সময় পরিবর্তন হয়েছে।',
+      audioUrl: 'tts:The meeting has been rescheduled to 3 PM.',
+      banglaExplanation: 'Audio transcript: "The meeting has been rescheduled to 3 PM."\n\nRescheduled = সময় পরিবর্তন হয়েছে, ৩ PM এ।',
     },
     {
       questionText: 'Audio: "I\'ve been working here for about three years now."\nHow long has the person worked here?',
@@ -550,8 +550,8 @@ async function main() {
       options: ['1 year', '2 years', '3 years', '4 years'],
       correctAnswer: '3 years',
       mistakeTags: ['listening_weak'],
-      audioUrl: '/audio/listening-4.mp3',
-      banglaExplanation: '"About three years" — প্রায় ৩ বছর।',
+      audioUrl: 'tts:I\'ve been working here for about three years now.',
+      banglaExplanation: 'Audio transcript: "I\'ve been working here for about three years now."\n\n"About three years" — প্রায় ৩ বছর।',
     },
     {
       questionText: 'Audio: "Could you send me the invoice by Friday at the latest?"\nWhat is the deadline?',
@@ -559,8 +559,8 @@ async function main() {
       options: ['Monday', 'Wednesday', 'Friday', 'Sunday'],
       correctAnswer: 'Friday',
       mistakeTags: ['listening_weak', 'client_listening_weak'],
-      audioUrl: '/audio/listening-5.mp3',
-      banglaExplanation: '"By Friday at the latest" — শুক্রবারের মধ্যে।',
+      audioUrl: 'tts:Could you send me the invoice by Friday at the latest?',
+      banglaExplanation: 'Audio transcript: "Could you send me the invoice by Friday at the latest?"\n\n"By Friday at the latest" — শুক্রবারের মধ্যে।',
     },
 
     {
@@ -569,8 +569,8 @@ async function main() {
       options: ['They will attend', 'They cannot attend tomorrow', 'They want to reschedule', 'They are late'],
       correctAnswer: 'They cannot attend tomorrow',
       mistakeTags: ['listening_weak'],
-      audioUrl: '/audio/listening-6.mp3',
-      banglaExplanation: '"Won\'t be able to attend" — আসতে পারবে না।',
+      audioUrl: 'tts:I\'m sorry, but I won\'t be able to attend the meeting tomorrow.',
+      banglaExplanation: 'Audio transcript: "I\'m sorry, but I won\'t be able to attend the meeting tomorrow."\n\n"Won\'t be able to attend" — আসতে পারবে না।',
     },
     {
       questionText: 'Audio: "The restaurant is on the left side, just past the bank."\nWhere is the restaurant?',
@@ -578,8 +578,8 @@ async function main() {
       options: ['Right side before bank', 'Left side past the bank', 'Behind the bank', 'Next to the school'],
       correctAnswer: 'Left side past the bank',
       mistakeTags: ['listening_weak'],
-      audioUrl: '/audio/listening-7.mp3',
-      banglaExplanation: '"On the left side, just past the bank" — bank পার হলে বাম পাশে।',
+      audioUrl: 'tts:The restaurant is on the left side, just past the bank.',
+      banglaExplanation: 'Audio transcript: "The restaurant is on the left side, just past the bank."\n\n"On the left side, just past the bank" — bank পার হলে বাম পাশে।',
     },
     {
       questionText: 'Audio: "Please let me know if you need any changes to the proposal."\nWhat is the speaker asking?',
@@ -587,8 +587,8 @@ async function main() {
       options: ['Send the proposal', 'Tell if changes needed', 'Delete the proposal', 'Accept the proposal'],
       correctAnswer: 'Tell if changes needed',
       mistakeTags: ['listening_weak', 'client_listening_weak'],
-      audioUrl: '/audio/listening-8.mp3',
-      banglaExplanation: '"Let me know if you need changes" — পরিবর্তন লাগলে জানান।',
+      audioUrl: 'tts:Please let me know if you need any changes to the proposal.',
+      banglaExplanation: 'Audio transcript: "Please let me know if you need any changes to the proposal."\n\n"Let me know if you need changes" — পরিবর্তন লাগলে জানান।',
     },
     {
       questionText: 'Audio: "I think we should postpone the launch until next month."\nWhat does postpone mean here?',
@@ -596,8 +596,8 @@ async function main() {
       options: ['Start now', 'Cancel completely', 'Delay to next month', 'Speed up'],
       correctAnswer: 'Delay to next month',
       mistakeTags: ['listening_weak', 'vocabulary_weak'],
-      audioUrl: '/audio/listening-9.mp3',
-      banglaExplanation: 'Postpone = পিছিয়ে দেওয়া, delay করা।',
+      audioUrl: 'tts:I think we should postpone the launch until next month.',
+      banglaExplanation: 'Audio transcript: "I think we should postpone the launch until next month."\n\nPostpone = পিছিয়ে দেওয়া, delay করা।',
     },
     {
       questionText: 'Audio: "First, turn right, then go straight. It\'s the third building on your left."\nWhich building?',
@@ -605,8 +605,8 @@ async function main() {
       options: ['First on right', 'Second on left', 'Third on left', 'Fourth on right'],
       correctAnswer: 'Third on left',
       mistakeTags: ['listening_weak', 'connected_speech_weak'],
-      audioUrl: '/audio/listening-10.mp3',
-      banglaExplanation: '"Third building on your left" — বাম পাশে তৃতীয় building।',
+      audioUrl: 'tts:First, turn right, then go straight. It\'s the third building on your left.',
+      banglaExplanation: 'Audio transcript: "First, turn right, then go straight. It\'s the third building on your left."\n\n"Third building on your left" — বাম পাশে তৃতীয় building।',
     },
   ];
 

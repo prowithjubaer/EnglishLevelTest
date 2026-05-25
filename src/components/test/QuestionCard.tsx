@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 interface Question {
   id: string;
@@ -30,12 +30,85 @@ const CATEGORY_INSTRUCTIONS: Record<string, string> = {
   learning_behavior: 'আপনি বাস্তবে যতটুকু সময় দিতে পারবেন বা যেভাবে practice করেন, সেটাই select করুন। এতে আপনার roadmap accurate হবে।',
 };
 
+// TTS function with British accent
+function speakText(text: string, rate: number = 0.9): Promise<void> {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) {
+      resolve();
+      return;
+    }
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = rate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    // Try to find a British English voice
+    const voices = window.speechSynthesis.getVoices();
+    const britishVoice = voices.find(v =>
+      v.lang === 'en-GB' || v.lang.startsWith('en-GB')
+    ) || voices.find(v =>
+      v.name.toLowerCase().includes('british') ||
+      v.name.toLowerCase().includes('uk') ||
+      v.name.toLowerCase().includes('daniel') ||
+      v.name.toLowerCase().includes('kate')
+    ) || voices.find(v => v.lang.startsWith('en'));
+
+    if (britishVoice) {
+      utterance.voice = britishVoice;
+    }
+    utterance.lang = 'en-GB';
+
+    utterance.onend = () => resolve();
+    utterance.onerror = () => resolve();
+
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
 export default function QuestionCard({ question, questionNumber, onAnswer }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [audioPlays, setAudioPlays] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const maxPlays = question.cefrLevel === 'A1' || question.cefrLevel === 'A2' ? 3 : 2;
 
   const instruction = question.instructionText || CATEGORY_INSTRUCTIONS[question.category] || '';
+
+  // Check if this is a TTS-based listening question
+  const isTTSQuestion = question.audioUrl?.startsWith('tts:');
+  const ttsText = isTTSQuestion ? question.audioUrl!.slice(4) : null;
+
+  // For listening questions, only show the question part (after the \n)
+  const displayQuestionText = (() => {
+    if (question.questionType === 'audio_mcq' && question.category === 'listening') {
+      // The question text may have format "Audio: \"...\"\nActual question"
+      // We only show the actual question part
+      const parts = question.questionText.split('\n');
+      if (parts.length > 1) {
+        return parts.slice(1).join('\n');
+      }
+    }
+    return question.questionText;
+  })();
+
+  const handlePlayTTS = useCallback(async () => {
+    if (audioPlays >= maxPlays || isPlaying || !ttsText) return;
+    setIsPlaying(true);
+    setAudioPlays(prev => prev + 1);
+
+    // Load voices if not loaded yet
+    if (window.speechSynthesis.getVoices().length === 0) {
+      await new Promise<void>(resolve => {
+        window.speechSynthesis.onvoiceschanged = () => resolve();
+        setTimeout(resolve, 500);
+      });
+    }
+
+    await speakText(ttsText);
+    setIsPlaying(false);
+  }, [audioPlays, maxPlays, isPlaying, ttsText]);
 
   const handleSelect = (option: string) => {
     setSelected(option);
@@ -62,12 +135,41 @@ export default function QuestionCard({ question, questionNumber, onAnswer }: Pro
       <div className="mb-6">
         <span className="text-xs text-gray-400 mb-1 block">Question {questionNumber}</span>
         <h3 className="text-lg font-semibold text-brand-navy leading-relaxed font-bangla">
-          {question.questionText}
+          {displayQuestionText}
         </h3>
       </div>
 
-      {/* Audio Player */}
-      {question.audioUrl && (
+      {/* TTS Audio Player for listening questions */}
+      {isTTSQuestion && (
+        <div className="mb-6 bg-gray-50 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handlePlayTTS}
+              disabled={audioPlays >= maxPlays || isPlaying}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                audioPlays >= maxPlays
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : isPlaying
+                  ? 'bg-green-500 text-white animate-pulse'
+                  : 'bg-brand-navy text-white hover:bg-brand-navy-light'
+              }`}
+            >
+              {isPlaying ? '🔊 Playing...' : '🔊 Play Audio'}
+            </button>
+            <span className="text-xs text-gray-500">
+              {maxPlays - audioPlays} plays remaining
+            </span>
+          </div>
+          {audioPlays === 0 && (
+            <p className="text-xs text-orange-600 mt-2 font-bangla">
+              ⚠️ Audio শুনে answer দিন। মনোযোগ দিয়ে শুনুন।
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* File-based Audio Player (fallback for non-TTS) */}
+      {question.audioUrl && !isTTSQuestion && (
         <div className="mb-6 bg-gray-50 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <button
