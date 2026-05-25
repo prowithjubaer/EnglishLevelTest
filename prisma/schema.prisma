@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  name        String
+  whatsapp    String
+  email       String?
+  goal        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  attempts    TestAttempt[]
+  actions     LeadAction[]
+  adminNotes  AdminNote[]
+}
+
+model Question {
+  id                String   @id @default(cuid())
+  questionText      String
+  instructionText   String?
+  questionType      String   // mcq, fill_blank, word_order, error_spot, audio_mcq, scenario_mcq, self_assessment, habit, attention_check
+  category          String   // grammar, vocabulary, sentence_making, listening, speaking_readiness, real_life_communication, learning_behavior
+  cefrLevel         String   // A1, A2, B1, B2
+  difficulty        String   // easy, medium, hard
+  optionsJson       String   // JSON array of options
+  correctAnswer     String
+  explanation       String?
+  banglaExplanation String?
+  audioUrl          String?
+  marks             Float    @default(1)
+  negativeMarking   Float    @default(0)
+  mistakeTagsJson   String?  // JSON array of tags
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  answers           Answer[]
+}
+
+model TestMode {
+  id                      String   @id @default(cuid())
+  name                    String
+  slug                    String   @unique
+  description             String?
+  durationMinutes         Int      @default(15)
+  questionsPerSectionJson String   // JSON object mapping section -> count
+  adaptiveEnabled         Boolean  @default(true)
+  leadCaptureRequired     Boolean  @default(true)
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  attempts                TestAttempt[]
+}
+
+model TestAttempt {
+  id                    String   @id @default(cuid())
+  leadId                String
+  testModeId            String
+  totalScore            Float?
+  weightedScore         Float?
+  level                 String?
+  cefrLevel             String?
+  testConfidence        String?  // high, medium, low
+  grammarScore          Float?
+  vocabularyScore       Float?
+  sentenceMakingScore   Float?
+  listeningScore        Float?
+  speakingReadinessScore Float?
+  realLifeScore         Float?
+  learningBehaviorScore Float?
+  weaknessesJson        String?
+  recommendedCourse     String?
+  recommendedRoadmapJson String?
+  startedAt             DateTime @default(now())
+  completedAt           DateTime?
+  timeSpentSeconds      Int?
+  status                String   @default("in_progress") // in_progress, completed, abandoned
+
+  lead                  Lead     @relation(fields: [leadId], references: [id])
+  testMode              TestMode @relation(fields: [testModeId], references: [id])
+  answers               Answer[]
+  actions               LeadAction[]
+}
+
+model Answer {
+  id              String   @id @default(cuid())
+  attemptId       String
+  questionId      String
+  selectedAnswer  String?
+  isCorrect       Boolean  @default(false)
+  score           Float    @default(0)
+  timeSpentSeconds Int?
+  skipped         Boolean  @default(false)
+  mistakeTagsJson String?
+  createdAt       DateTime @default(now())
+
+  attempt         TestAttempt @relation(fields: [attemptId], references: [id])
+  question        Question    @relation(fields: [questionId], references: [id])
+}
+
+model ResultRule {
+  id               String  @id @default(cuid())
+  minScore         Float
+  maxScore         Float
+  levelName        String
+  cefrLevel        String
+  message          String
+  roadmapJson      String?
+  recommendedCourse String?
+  isActive         Boolean @default(true)
+}
+
+model WeaknessRule {
+  id              String  @id @default(cuid())
+  weaknessKey     String
+  conditionJson   String
+  message         String
+  recommendation  String?
+  isActive        Boolean @default(true)
+}
+
+model LeadAction {
+  id           String   @id @default(cuid())
+  leadId       String
+  attemptId    String?
+  actionType   String   // test_started, test_completed, pdf_downloaded, whatsapp_clicked, course_link_clicked, retake_started
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  lead         Lead        @relation(fields: [leadId], references: [id])
+  attempt      TestAttempt? @relation(fields: [attemptId], references: [id])
+}
+
+model AdminNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  adminId   String?
+  note      String
+  createdAt DateTime @default(now())
+
+  lead      Lead @relation(fields: [leadId], references: [id])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+}
+
+model SiteConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
